@@ -1,22 +1,20 @@
+![](https://www.r-pkg.org/badges/version-ago/opa) ![](https://cranlogs.r-pkg.org/badges/grand-total/opa) [![](https://cranlogs.r-pkg.org/badges/opa)](https://cran.r-project.org/package=opa)
+
 # opa
 
 An R package for ordinal pattern analysis.
 
 ## Introduction
 
-The `opa` package implements ordinal pattern analysis, as described by [Grice et al., (2015)](https://doi.org/10.1177/2158244015604192) and [Thorngate (1987)](https://doi.org/10.1016/S0166-4115(08)60083-7). Ordinal pattern analysis is a non-parametric statistical method suitable for analyzing timeseries and repeated measures data. It is a suitable replacement for many applications of repeated measures ANOVA.
+The `opa` package implements ordinal pattern analysis, as described by [Grice et al., (2015)](https://doi.org/10.1177/2158244015604192) and [Thorngate (1987)](https://doi.org/10.1016/S0166-4115(08)60083-7). Ordinal pattern analysis is a non-parametric statistical method suitable for analyzing timeseries and repeated measures data. It is a suitable replacement for many applications of repeated measures ANOVA. Further details can be found in [Beechey (2022)](https://doi.org/10.17605/OSF.IO/W32DK).
 
 ## Installation
 
-`opa` is not available on cran yet. The package can be installed from github using the devtools package.
+`opa` can be installed from CRAN using:
 
 ```r
-install.packages("devtools")
-
-devtools::install_github("timbeechey/opa")
+install.packages("opa")
 ```
-
-In order to build the C++ functions it is necessary to have installed Rtools on Windows or Xcode commandline tools on mac prior to installing `opa`.
 
 ## How ordinal pattern analysis works
 
