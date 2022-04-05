@@ -1,5 +1,5 @@
-# <opa: An Implementation of Ordinal Pattern Analysis.>
-# Copyright (C) <2022>  <Timothy Beechey; tim.beechey@protonmail.com>
+# opa: An Implementation of Ordinal Pattern Analysis.
+# Copyright (C) 2022 Timothy Beechey (tim.beechey@protonmail.com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,24 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
-
-# Generates pairwise ordinal relations from a vector, consisting of integers
-# from the set {1, 0, -1}. When the pairing_type = "adjacent" option is used,
-# calling ordering() on a vector of length N produces a vector of length N-1.
-# When the pairing_type = "pairwise" option is used, calling ordering() on an
-# N-length vector returns a vector of length ((N-1) * N)/2
-# param: xs a numeric vector
-# param: pairing_type a character string, either "adjacent" or "pairwise"
-# param: diff_threshold: a numeric scalar
-# return: a numeric vector
-ordering <- function(xs, pairing_type, diff_threshold) {
-  if (pairing_type == "pairwise") {
-    c_sign_with_threshold(c_all_diffs(xs), diff_threshold)
-  } else if (pairing_type == "adjacent") {
-    c_sign_with_threshold(diff(xs), diff_threshold)
-  }
-}
 
 # Removes elements of a hypothesis vector that correspond to the position of
 # NAs in a numeric vector of data (a data row).
@@ -57,15 +39,15 @@ conform <- function(xs, h) {
 #' @export
 summary.opafit <- function(object, ..., digits = 2L) {
   if (is.null(object$groups)) {
-    cat("Ordinal Pattern Analysis of", ncol(object$data), "observations for",
-        nrow(object$data), "individuals in 1 group \n\n")
+    cat("Ordinal Pattern Analysis of", dim(object$data)[2], "observations for",
+        dim(object$data)[1], "individuals in 1 group \n\n")
   } else {
-    cat("Ordinal Pattern Analysis of", ncol(object$data), "observations for",
-        nrow(object$data), "individuals in", nlevels(object$groups), "groups \n\n")
+    cat("Ordinal Pattern Analysis of", dim(object$data)[2], "observations for",
+        dim(object$data)[1], "individuals in", nlevels(object$groups), "groups \n\n")
   }
-  cat("Group-level results:\n")
+  cat("Between subjects results:\n")
   print(group_results(object, digits))
-  cat("\nIndividual-level results:\n")
+  cat("\nWithin subjects results:\n")
   print(individual_results(object, digits))
   cat("\nPCCs were calculated for ", object$pairing_type,
       " ordinal relationships using a difference threshold of ", object$diff_threshold,
@@ -93,7 +75,7 @@ print.opafit <- function(x, ...) {
 pcc_threshold_plot <- function(m, pcc_threshold = 75) {
   Individual <- group <- PCC <- NULL # bind variables to function
   if (is.null(m$groups)) { # single group
-    df <- data.frame(Individual = 1:nrow(m$data),
+    df <- data.frame(Individual = 1:dim(m$data)[1],
                      PCC = m$individual_pccs)
     ggplot2::ggplot(df, ggplot2::aes(x = Individual, y = PCC)) +
       ggplot2::scale_x_continuous(breaks = 1:length(m$individual_pccs)) +
@@ -132,42 +114,45 @@ pcc_threshold_plot <- function(m, pcc_threshold = 75) {
 #' plot(opamod)
 #' @export
 plot.opafit <- function(x, ...) {
+
   Individual <- stat <- group <- value <- NULL
   if (is.null(x$groups)) { # single group
-    df <- data.frame(Individual = rep(1:nrow(x$data), 2),
-                     stat = c(rep("PCCs", nrow(x$data)), rep("c-values", nrow(x$data))),
+    df <- data.frame(Individual = rep(1:dim(x$data)[1], 2),
+                     stat = c(rep("PCCs", dim(x$data)[1]), rep("c-values", dim(x$data)[1])),
                      value = c(x$individual_pccs, x$individual_cvals))
     df$stat <- factor(df$stat, levels = c("PCCs", "c-values"))
     ggplot2::ggplot(df, ggplot2::aes(x = Individual, y = value)) +
-      ggplot2::scale_x_continuous(breaks = 1:length(x$individual_pccs)) +
+      ggplot2::scale_x_reverse(breaks = 1:length(x$individual_pccs)) +
       ggplot2::geom_segment(ggplot2::aes(x=Individual, xend=Individual, y=0, yend=value), colour="black", size=0.3) +
-      ggplot2::geom_point(size=2, shape=21, ggplot2::aes(fill=stat)) +
+      ggplot2::geom_point(size=2.5, shape=21, ggplot2::aes(fill=stat)) +
       ggplot2::facet_wrap(~ stat, nrow=1, scale="free") +
       ggplot2::ylab(NULL) +
       ggplot2::guides(fill="none") +
       ggplot2::coord_flip() +
+      ggplot2::theme_bw() +
       ggplot2::theme(panel.grid.major.y = ggplot2::element_blank(),
                      panel.grid.minor.y = ggplot2::element_blank())
   } else { # multiple groups
     df <- data.frame(Individual = rep(1:length(x$individual_pccs), 2),
                      group = rep(factor(x$group_labels), 2),
-                     stat = c(rep("PCCs", nrow(x$data)), rep("c-values", nrow(x$data))),
+                     stat = c(rep("PCCs", nrow(x$data)), rep("c-values", dim(x$data)[1])),
                      value = c(x$individual_pccs, x$individual_cvals))
     df$stat <- factor(df$stat, levels = c("PCCs", "c-values"))
     ggplot2::ggplot(df, ggplot2::aes(x = Individual, y = value)) +
-      ggplot2::scale_x_continuous(breaks = 1:length(x$individual_idx), labels=x$individual_idx) +
+      ggplot2::scale_x_reverse(breaks = 1:length(x$individual_idx), labels=x$individual_idx) +
       ggplot2::geom_segment(ggplot2::aes(x=Individual, xend=Individual, y=0, yend=value), colour="black", size=0.3) +
-      ggplot2::geom_point(size=2, shape=21, ggplot2::aes(fill=group)) +
+      ggplot2::geom_point(size=2.5, shape=21, ggplot2::aes(fill=group)) +
       ggplot2::facet_wrap(~ stat, nrow=1, scale="free") +
       ggplot2::ylab(NULL) +
       ggplot2::coord_flip() +
+      ggplot2::theme_bw() +
       ggplot2::theme(panel.grid.major.y = ggplot2::element_blank(),
                      panel.grid.minor.y = ggplot2::element_blank(),
                      legend.position = "bottom")
   }
 }
 
-#' Returns group-level PCC and chance values.
+#' Group-level PCC and chance values.
 #'
 #' @details
 #' If the model was fitted with no grouping variable, a single PCC and c-value
@@ -210,7 +195,7 @@ group_results.opafit <- function(m, digits = 2) {
   }
 }
 
-#' Returns individual-level PCC and chance values.
+#' Individual-level PCC and chance values.
 #'
 #' @details
 #' If the model was fitted with no grouping variable, a matrix of PCCs and
@@ -253,12 +238,12 @@ individual_results.opafit <- function(m, digits = 2) {
   }
 }
 
-#' Convenience function for plotting a hypothesis.
+#' Plot a hypothesis.
 #' @param h a numeric vector
 #' @return an object of class "ggplot"
 #' @examples
-#' my_hypothesis <- c(1,2,3,3,3)
-#' plot_hypothesis(my_hypothesis)
+#' h <- c(1,2,3,3,3)
+#' plot_hypothesis(h)
 #' @export
 plot_hypothesis <- function(h) {
   condition <- hypothesis <- NULL
@@ -268,8 +253,8 @@ plot_hypothesis <- function(h) {
     ggplot2::scale_x_continuous(labels = as.character(df$condition), breaks = df$condition) +
     ggplot2::scale_y_continuous(labels = as.character(df$hypothesis), breaks = df$hypothesis) +
     ggplot2::labs(x = "Condition", y = "Relative Value") +
-    ggplot2::theme(panel.grid.minor = ggplot2::element_blank())
-}
+    ggplot2::theme_bw() +
+    ggplot2::theme(panel.grid = ggplot2::element_blank())}
 
 # Clean up C++ when package is unloaded.
 .onUnload <- function(libpath) {

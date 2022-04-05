@@ -11,7 +11,8 @@ opa(
   pairing_type = "pairwise",
   diff_threshold = 0,
   cval_method = "stochastic",
-  nreps = 1000
+  nreps = 1000L,
+  progress = FALSE
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ opa(
 \item{cval_method}{a string, either "exact" or "stochastic}
 
 \item{nreps}{an integer, ignored if \code{cval_method = "exact"}}
+
+\item{progress}{a boolean indicating whether to display a progress bar}
 }
 \value{
 \code{opa} returns an object of class "opafit".
@@ -39,6 +42,9 @@ An object of class "opafit" is a list containing the folllowing components:
   \item{individual_pccs}{a vector containing the percentage of pairwise
   orderings that were correctly classified by the hypothesis for each data
   row.}
+  \item{condition_pccs}{a matrix containing PCCs for each pair of
+  conditions, or a list containing such a matrix for each group level if a
+  grouping variable is passed to \code{opa}}
   \item{correct_pairs}{an integer representing the number of pairwise
   orderings pooled across all data rows that were correctly classified by the
   hypothesis.}

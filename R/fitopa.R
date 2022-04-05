@@ -1,5 +1,5 @@
-# <opa: An Implementation of Ordinal Pattern Analysis.>
-# Copyright (C) <2022>  <Timothy Beechey; tim.beechey@protonmail.com>
+# opa: An Implementation of Ordinal Pattern Analysis.
+# Copyright (C) 2022 Timothy Beechey (tim.beechey@protonmail.com)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -72,6 +72,7 @@
 #' @param diff_threshold a positive integer or floating point number
 #' @param cval_method a string, either "exact" or "stochastic
 #' @param nreps an integer, ignored if \code{cval_method = "exact"}
+#' @param progress a boolean indicating whether to display a progress bar
 #' @return \code{opa} returns an object of class "opafit".
 #'
 #' An object of class "opafit" is a list containing the folllowing components:
@@ -81,6 +82,9 @@
 #'   \item{individual_pccs}{a vector containing the percentage of pairwise
 #'   orderings that were correctly classified by the hypothesis for each data
 #'   row.}
+#'   \item{condition_pccs}{a matrix containing PCCs for each pair of
+#'   conditions, or a list containing such a matrix for each group level if a
+#'   grouping variable is passed to \code{opa}}
 #'   \item{correct_pairs}{an integer representing the number of pairwise
 #'   orderings pooled across all data rows that were correctly classified by the
 #'   hypothesis.}
@@ -112,16 +116,18 @@
 #' opa(dat[,2:4], 1:3, group = dat$group)
 #' @export
 opa <- function(dat, hypothesis, group = NULL, pairing_type = "pairwise",
-                diff_threshold = 0, cval_method = "stochastic", nreps = 1000) {
+                diff_threshold = 0, cval_method = "stochastic", nreps = 1000L,
+                progress = FALSE) {
   # verify the arguments
-  assertthat::assert_that(assertthat::are_equal(ncol(dat), length(hypothesis)))
-  assertthat::assert_that(pairing_type %in% c("pairwise", "adjacent"))
-  assertthat::assert_that(cval_method %in% c("exact", "stochastic"))
-  assertthat::assert_that(class(diff_threshold) %in% c("integer", "numeric"))
-  assertthat::assert_that(assertthat::is.count(nreps))
-  assertthat::assert_that(assertthat::is.scalar(diff_threshold))
-  assertthat::assert_that(assertthat::is.count(nreps))
-  assertthat::assert_that(assertthat::are_equal(diff_threshold >= 0, TRUE))
+  stopifnot("Hypothesis and data rows are not the same length"= dim(dat)[2] == length(hypothesis))
+  stopifnot("pairing_type must be 'pairwise' or 'adjacent'"= pairing_type %in% c("pairwise", "adjacent"))
+  stopifnot("cval_method must be 'exact' or 'stochastic'"= cval_method %in% c("exact", "stochastic"))
+  stopifnot("diff_threshold must be a number"= class(diff_threshold) %in% c("integer", "numeric"))
+  stopifnot("diff_threshold must be a non-negative number"= diff_threshold >= 0)
+  stopifnot("nreps must be a whole number"= nreps == as.integer(nreps))
+  stopifnot("nreps must be a positive number"= nreps >= 1)
+  stopifnot("nreps must be a single number"= length(nreps) == 1)
+  stopifnot("diff_threshold must be a single number"= length(diff_threshold) == 1)
 
   if (is.null(group)) { # single groups
     # convert the data.frame input to a matrix for speed
@@ -129,15 +135,19 @@ opa <- function(dat, hypothesis, group = NULL, pairing_type = "pairwise",
 
     pccs <- pcc(mat, hypothesis, pairing_type, diff_threshold)
     if (cval_method == "exact") {
-      cvalues <- cval_exact(pccs)
+      cvalues <- cval_exact(pccs, progress)
     } else if (cval_method == "stochastic") {
-      cvalues <- cval_stochastic(pccs, nreps)
+      cvalues <- cval_stochastic(pccs, nreps, progress)
     }
+
+    # create an upper triangle matrix of PCCs for pairs of conditions
+    cond_pccs <- condition_pair_pccs(pccs)
 
     return(
       structure(
         list(group_pcc = pccs$group_pcc,
              individual_pccs = pccs$individual_pccs,
+             condition_pccs = cond_pccs$mat,
              correct_pairs = pccs$correct_pairs,
              total_pairs = pccs$total_pairs,
              group_cval = cvalues$group_cval,
@@ -155,7 +165,7 @@ opa <- function(dat, hypothesis, group = NULL, pairing_type = "pairwise",
         class = "opafit"))
 
   } else { # multiple groups
-    assertthat::assert_that(is.factor(group) == TRUE, msg = "The grouping vector must be a factor.")
+    stopifnot("The grouping vector must be a factor"=is.factor(group))
     groups <- levels(group)
     group_pccs <- numeric(nlevels(group))
     group_cvals <- numeric(nlevels(group))
@@ -168,17 +178,23 @@ opa <- function(dat, hypothesis, group = NULL, pairing_type = "pairwise",
     n_permutations <- 0
     pccs_geq_observed <- 0
     pcc_replicates <- vector(nlevels(group), mode="list")
+    cond_pccs <- vector(nlevels(group), mode="list")
 
     for (i in 1:nlevels(group)) {
       idx <- which(group == groups[i])
       subgroup_dat <- dat[idx,]
       subgroup_mat <- as.matrix(subgroup_dat)
       subgroup_pccs <- pcc(subgroup_mat, hypothesis, pairing_type, diff_threshold)
-      cat("Fitting group", i, "of", nlevels(group), "\n")
+
+      # create an upper triangle matrix of PCCs for pairs of conditions
+      cond_pccs[[i]] <- condition_pair_pccs(subgroup_pccs)$mat
+
+      if (progress == TRUE)
+        cat("Fitting group", i, "of", nlevels(group), "\n")
       if (cval_method == "exact") {
-        subgroup_cvalues <- cval_exact(subgroup_pccs)
+        subgroup_cvalues <- cval_exact(subgroup_pccs, progress)
       } else if (cval_method == "stochastic") {
-        subgroup_cvalues <- cval_stochastic(subgroup_pccs, nreps)
+        subgroup_cvalues <- cval_stochastic(subgroup_pccs, nreps, progress)
       }
       group_pccs[i] <- subgroup_pccs$group_pcc
       correct_pairs <- correct_pairs + subgroup_pccs$correct_pairs
@@ -194,11 +210,13 @@ opa <- function(dat, hypothesis, group = NULL, pairing_type = "pairwise",
     }
     names(group_pccs) <- levels(group)
     names(group_cvals) <- levels(group)
+    names(cond_pccs) <- levels(group)
 
     return(
       structure(
         list(group_pcc = group_pccs,
              individual_pccs = individual_pccs,
+             condition_pccs = cond_pccs,
              correct_pairs = correct_pairs,
              total_pairs = total_pairs,
              group_cval = group_cvals,

@@ -11,13 +11,13 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // c_sign_with_threshold
-IntegerVector c_sign_with_threshold(NumericVector xs, double diff_threshold);
+IntegerVector c_sign_with_threshold(NumericVector xs, float diff_threshold);
 RcppExport SEXP _opa_c_sign_with_threshold(SEXP xsSEXP, SEXP diff_thresholdSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type xs(xsSEXP);
-    Rcpp::traits::input_parameter< double >::type diff_threshold(diff_thresholdSEXP);
+    Rcpp::traits::input_parameter< float >::type diff_threshold(diff_thresholdSEXP);
     rcpp_result_gen = Rcpp::wrap(c_sign_with_threshold(xs, diff_threshold));
     return rcpp_result_gen;
 END_RCPP
@@ -45,15 +45,41 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-
-static const R_CallMethodDef CallEntries[] = {
-    {"_opa_c_sign_with_threshold", (DL_FUNC) &_opa_c_sign_with_threshold, 2},
-    {"_opa_c_all_diffs", (DL_FUNC) &_opa_c_all_diffs, 1},
-    {"_opa_c_random_shuffles", (DL_FUNC) &_opa_c_random_shuffles, 2},
-    {NULL, NULL, 0}
-};
-
-RcppExport void R_init_opa(DllInfo *dll) {
-    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-    R_useDynamicSymbols(dll, FALSE);
+// c_ordering
+IntegerVector c_ordering(NumericVector xs, String pairing_type, float diff_threshold);
+RcppExport SEXP _opa_c_ordering(SEXP xsSEXP, SEXP pairing_typeSEXP, SEXP diff_thresholdSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type xs(xsSEXP);
+    Rcpp::traits::input_parameter< String >::type pairing_type(pairing_typeSEXP);
+    Rcpp::traits::input_parameter< float >::type diff_threshold(diff_thresholdSEXP);
+    rcpp_result_gen = Rcpp::wrap(c_ordering(xs, pairing_type, diff_threshold));
+    return rcpp_result_gen;
+END_RCPP
+}
+// c_compare_perm_pccs
+List c_compare_perm_pccs(NumericMatrix perms, List m, int indiv_idx, IntegerVector H_ord);
+RcppExport SEXP _opa_c_compare_perm_pccs(SEXP permsSEXP, SEXP mSEXP, SEXP indiv_idxSEXP, SEXP H_ordSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type perms(permsSEXP);
+    Rcpp::traits::input_parameter< List >::type m(mSEXP);
+    Rcpp::traits::input_parameter< int >::type indiv_idx(indiv_idxSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type H_ord(H_ordSEXP);
+    rcpp_result_gen = Rcpp::wrap(c_compare_perm_pccs(perms, m, indiv_idx, H_ord));
+    return rcpp_result_gen;
+END_RCPP
+}
+// c_generate_permutations
+NumericMatrix c_generate_permutations(NumericVector v);
+RcppExport SEXP _opa_c_generate_permutations(SEXP vSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type v(vSEXP);
+    rcpp_result_gen = Rcpp::wrap(c_generate_permutations(v));
+    return rcpp_result_gen;
+END_RCPP
 }
