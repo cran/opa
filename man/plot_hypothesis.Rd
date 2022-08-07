@@ -4,13 +4,15 @@
 \alias{plot_hypothesis}
 \title{Plot a hypothesis.}
 \usage{
-plot_hypothesis(h)
+plot_hypothesis(h, title = TRUE)
 }
 \arguments{
 \item{h}{a numeric vector}
+
+\item{title}{a boolean indicating whether to include a plot title}
 }
 \value{
-an object of class "ggplot"
+No return value, called for side effects.
 }
 \description{
 Plot a hypothesis.

@@ -60,10 +60,151 @@ print.opafit <- function(x, ...) {
   print(x$call)
 }
 
+#' Plot individual PCCs.
+#' @param m an object of class "opafit"
+#' @param threshold a boolean indicating whether to plot a threshold abline
+#' @param title a boolean indicating whether to include a plot title
+#' @param legend a boolean indicating whether to include a legend when n groups > 1
+#' @return No return value, called for side effects.
+#' @examples
+#' dat <- data.frame(t1 = c(9, 4, 8, 10),
+#'                   t2 = c(8, 8, 12, 10),
+#'                   t3 = c(8, 5, 10, 11))
+#' opamod <- opa(dat, 1:3)
+#' pcc_plot(opamod)
+#' pcc_plot(opamod, threshold = 85)
+#' @export
+pcc_plot <- function(m, threshold = NULL, title = TRUE, legend = TRUE) {
+  if (is.null(m$groups)) {
+    par(mar = c(4, 4, 2, 1)) # no legend for single group
+    plot_dat <- data.frame(group = rep(1, length(m$individual_pccs)),
+                           idx=1:length(m$individual_pccs),
+                           pcc = m$individual_pccs)
+  } else {
+    if (legend == TRUE) {
+      par(mar = c(4, 4, 2, 6)) # make space for legend on the right
+    } else {
+      par(mar = c(4, 4, 2, 1))
+    }
+    plot_dat <- data.frame(group = m$groups[m$individual_idx],
+                           idx = m$individual_idx,
+                           pcc = m$individual_pccs)
+  }
+  plot(x=NULL, y=NULL,
+       yaxt = "n",
+       xlim = c(0, 100), ylim = rev(c(1, nrow(plot_dat))),
+       ylab = "Individual", xlab = "PCC",
+       las = 1, frame.plot = FALSE,
+       main = ifelse(title == TRUE, "Individual PCCs", ""))
+  grid(ny = NA)
+  if (is.null(threshold)) {
+    segments(x0 = 0,
+             y0 = seq(nrow(plot_dat)),
+             x1 = plot_dat$pcc,
+             y1 = seq(nrow(plot_dat)),
+             yaxt = "n",
+             lty=1)
+  } else {
+    segments(x0 = 0,
+             y0 = seq(nrow(plot_dat)),
+             x1 = plot_dat$pcc,
+             y1 = seq(nrow(plot_dat)),
+             yaxt = "n",
+             lty=ifelse(plot_dat$pcc >= threshold, 1, 3))
+  }
+  if (! is.null(threshold))
+    abline(v=threshold, col="red", lty = 2)
+  points(plot_dat$pcc,
+         seq(nrow(plot_dat)),
+         pch=21,
+         cex=1.2,
+         bg=plot_dat$group)
+  axis(2, at=seq(nrow(plot_dat)),
+       labels = plot_dat$idx, las=1)
+  if (!is.null(m$groups)) {
+    if (legend == TRUE) {
+      legend("right", legend = levels(m$groups), title = "Group",
+             pch=21, pt.bg = m$groups, cex=1,
+             xpd = TRUE, inset = c(-0.3, 0))
+    }
+  }
+}
+
+#' Plot individual chance values
+#' @param m an object of class "opafit"
+#' @param threshold a boolean indicating whether to plot a threshold abline
+#' @param title a boolean indicating whether to include a plot title
+#' @param legend a boolean indicating whether to include a legend when n groups > 1
+#' @return No return value, called for side effects.
+#' @examples
+#' dat <- data.frame(t1 = c(9, 4, 8, 10),
+#'                   t2 = c(8, 8, 12, 10),
+#'                   t3 = c(8, 5, 10, 11))
+#' opamod <- opa(dat, 1:3)
+#' cval_plot(opamod)
+#' cval_plot(opamod, threshold = 0.1)
+#' @export
+cval_plot <- function(m, threshold = NULL, title = TRUE, legend = TRUE) {
+  if (is.null(m$groups)) {
+    par(mar = c(4, 4, 2, 1))
+    plot_dat <- data.frame(group = rep(1, length(m$individual_cvals)),
+                           idx=1:length(m$individual_cvals),
+                           cval = m$individual_cvals)
+  } else {
+    if (legend == TRUE) {
+      par(mar = c(4, 4, 2, 6)) # make space for legend on the right
+    } else {
+      par(mar = c(4, 4, 2, 1))
+    }
+    plot_dat <- data.frame(group = m$groups[m$individual_idx],
+                           idx = m$individual_idx,
+                           cval = m$individual_cvals)
+  }
+
+  plot(x=NULL, y=NULL,
+       yaxt = "n",
+       xlim = c(0, min(c(1, max(m$individual_cvals + 0.1)))),
+       ylim = rev(c(1, nrow(plot_dat))),
+       ylab = "Individual", xlab = "c-value",
+       las = 1, frame.plot = FALSE,
+       main = ifelse(title == TRUE, "Individual c-values", ""))
+  grid(ny = NA)
+  if (is.null(threshold)) {
+    segments(x0 = 0,
+             y0 = seq(nrow(plot_dat)),
+             x1 = plot_dat$cval,
+             y1 = seq(nrow(plot_dat)),
+             yaxt = "n",
+             lty=1)
+  } else {
+    segments(x0 = 0,
+             y0 = seq(nrow(plot_dat)),
+             x1 = plot_dat$cval,
+             y1 = seq(nrow(plot_dat)),
+             yaxt = "n",
+             lty=ifelse(plot_dat$cval >= threshold, 3, 1))
+  }
+  if (!is.null(threshold))
+    abline(v=threshold, col = "red", lty = 2)
+  points(plot_dat$cval,
+         seq(nrow(plot_dat)),
+         pch=21, cex=1.2,
+         bg=plot_dat$group)
+  axis(2, at=seq(nrow(plot_dat)),
+       labels = plot_dat$idx, las = 1)
+  if (!is.null(m$groups)) {
+    if (legend == TRUE) {
+      legend("right", legend = levels(m$groups), title = "Group",
+             pch=21, pt.bg = m$groups, cex=1,
+             xpd = TRUE, inset = c(-0.3, 0))
+    }
+  }
+}
+
 #' Plots individual PCCs relative to a user-supplied PCC threshold value.
 #' @param m an object of class "opafit"
 #' @param pcc_threshold a numeric scalar
-#' @return an object of class "ggplot"
+#' @return No return value, called for side effects.
 #' @examples
 #' dat <- data.frame(t1 = c(9, 4, 8, 10),
 #'                   t2 = c(8, 8, 12, 10),
@@ -73,39 +214,16 @@ print.opafit <- function(x, ...) {
 #' pcc_threshold_plot(opamod, pcc_threshold = 85)
 #' @export
 pcc_threshold_plot <- function(m, pcc_threshold = 75) {
-  Individual <- group <- PCC <- NULL # bind variables to function
-  if (is.null(m$groups)) { # single group
-    df <- data.frame(Individual = 1:dim(m$data)[1],
-                     PCC = m$individual_pccs)
-    ggplot2::ggplot(df, ggplot2::aes(x = Individual, y = PCC)) +
-      ggplot2::scale_x_continuous(breaks = 1:length(m$individual_pccs)) +
-      ggplot2::geom_hline(yintercept = pcc_threshold, linetype = 2, colour = "red") +
-      ggplot2::geom_segment(ggplot2::aes(x=Individual, xend=Individual, y=0, yend=PCC), colour="black", size=0.3) +
-      ggplot2::geom_point(size=2, shape=21, fill="royalblue") +
-      ggplot2::guides(fill="none") +
-      ggplot2::coord_flip() +
-      ggplot2::theme(panel.grid.major.y = ggplot2::element_blank(),
-                     panel.grid.minor.y = ggplot2::element_blank())
-  } else { # multiple groups
-    df <- data.frame(Individual = 1:length(m$individual_pccs),
-                     group = factor(m$group_labels),
-                     PCC = m$individual_pccs)
-    ggplot2::ggplot(df, ggplot2::aes(x = Individual, y = PCC)) +
-      ggplot2::scale_x_continuous(breaks = 1:length(m$individual_idx), labels=m$individual_idx) +
-      ggplot2::geom_hline(yintercept = pcc_threshold, linetype = 2, colour = "red") +
-      ggplot2::geom_segment(ggplot2::aes(x=Individual, xend=Individual, y=0, yend=PCC), colour="black", size=0.3) +
-      ggplot2::geom_point(size=2, shape=21, ggplot2::aes(fill=group)) +
-      ggplot2::coord_flip() +
-      ggplot2::theme(panel.grid.major.y = ggplot2::element_blank(),
-                     panel.grid.minor.y = ggplot2::element_blank(),
-                     legend.position = "bottom")
-  }
+  warning("pcc_threshold_plot() is deprecated. Use pcc_plot(x, threshold = n) instead")
+  pcc_plot(m, threshold = pcc_threshold)
 }
 
 #' Plots individual-level PCCs and chance-values.
 #' @param x an object of class "opafit" produced by \code{opa()}
+#' @param pcc_threshold a number used as the x-intercept to plot a PCC threshold abline
+#' @param cval_threshold a number used as the x-intercept to plot a c-value threshold abline
 #' @param ... ignored
-#' @return an object of class "ggplot"
+#' @return No return value, called for side effects.
 #' @examples
 #' dat <- data.frame(t1 = c(9, 4, 8, 10),
 #'                   t2 = c(8, 8, 12, 10),
@@ -113,42 +231,22 @@ pcc_threshold_plot <- function(m, pcc_threshold = 75) {
 #' opamod <- opa(dat, 1:3)
 #' plot(opamod)
 #' @export
-plot.opafit <- function(x, ...) {
-
-  Individual <- stat <- group <- value <- NULL
-  if (is.null(x$groups)) { # single group
-    df <- data.frame(Individual = rep(1:dim(x$data)[1], 2),
-                     stat = c(rep("PCCs", dim(x$data)[1]), rep("c-values", dim(x$data)[1])),
-                     value = c(x$individual_pccs, x$individual_cvals))
-    df$stat <- factor(df$stat, levels = c("PCCs", "c-values"))
-    ggplot2::ggplot(df, ggplot2::aes(x = Individual, y = value)) +
-      ggplot2::scale_x_reverse(breaks = 1:length(x$individual_pccs)) +
-      ggplot2::geom_segment(ggplot2::aes(x=Individual, xend=Individual, y=0, yend=value), colour="black", size=0.3) +
-      ggplot2::geom_point(size=2.5, shape=21, ggplot2::aes(fill=stat)) +
-      ggplot2::facet_wrap(~ stat, nrow=1, scale="free") +
-      ggplot2::ylab(NULL) +
-      ggplot2::guides(fill="none") +
-      ggplot2::coord_flip() +
-      ggplot2::theme_bw() +
-      ggplot2::theme(panel.grid.major.y = ggplot2::element_blank(),
-                     panel.grid.minor.y = ggplot2::element_blank())
-  } else { # multiple groups
-    df <- data.frame(Individual = rep(1:length(x$individual_pccs), 2),
-                     group = rep(factor(x$group_labels), 2),
-                     stat = c(rep("PCCs", nrow(x$data)), rep("c-values", dim(x$data)[1])),
-                     value = c(x$individual_pccs, x$individual_cvals))
-    df$stat <- factor(df$stat, levels = c("PCCs", "c-values"))
-    ggplot2::ggplot(df, ggplot2::aes(x = Individual, y = value)) +
-      ggplot2::scale_x_reverse(breaks = 1:length(x$individual_idx), labels=x$individual_idx) +
-      ggplot2::geom_segment(ggplot2::aes(x=Individual, xend=Individual, y=0, yend=value), colour="black", size=0.3) +
-      ggplot2::geom_point(size=2.5, shape=21, ggplot2::aes(fill=group)) +
-      ggplot2::facet_wrap(~ stat, nrow=1, scale="free") +
-      ggplot2::ylab(NULL) +
-      ggplot2::coord_flip() +
-      ggplot2::theme_bw() +
-      ggplot2::theme(panel.grid.major.y = ggplot2::element_blank(),
-                     panel.grid.minor.y = ggplot2::element_blank(),
-                     legend.position = "bottom")
+plot.opafit <- function(x, pcc_threshold = NULL, cval_threshold = NULL, ...) {
+  if (is.null(x$groups)) {
+    par(mfrow = c(1, 2))
+    pcc_plot(x, threshold = pcc_threshold)
+    cval_plot(x, threshold = cval_threshold)
+    par(mfrow = c(1, 1))
+  } else {
+    layout(matrix(c(1, 2, 3, 3), ncol = 2, byrow = TRUE), heights=c(4, 1))
+    par(mai = rep(0.5, 4))
+    pcc_plot(x, threshold = pcc_threshold, legend = FALSE)
+    cval_plot(x, threshold = cval_threshold, legend = FALSE)
+    par(mai = c(0, 0, 0, 0))
+    plot.new()
+    legend(x="center", horiz = TRUE, legend = levels(x$groups), title = "Group",
+           pch=21, pt.bg = x$groups, cex=1)
+    par(mfrow = c(1, 1))
   }
 }
 
@@ -236,21 +334,26 @@ individual_results.opafit <- function(m, digits = 2) {
 
 #' Plot a hypothesis.
 #' @param h a numeric vector
-#' @return an object of class "ggplot"
+#' @param title a boolean indicating whether to include a plot title
+#' @return No return value, called for side effects.
 #' @examples
 #' h <- c(1,2,3,3,3)
 #' plot_hypothesis(h)
 #' @export
-plot_hypothesis <- function(h) {
-  condition <- hypothesis <- NULL
-  df <- data.frame(condition = 1:length(h), hypothesis = h)
-  ggplot2::ggplot(df, ggplot2::aes(x = condition, y = hypothesis)) +
-    ggplot2::geom_point(size = 4, shape = 21, fill = "royalblue") +
-    ggplot2::scale_x_continuous(labels = as.character(df$condition), breaks = df$condition) +
-    ggplot2::scale_y_continuous(labels = as.character(df$hypothesis), breaks = df$hypothesis) +
-    ggplot2::labs(x = "Condition", y = "Relative Value") +
-    ggplot2::theme_bw() +
-    ggplot2::theme(panel.grid = ggplot2::element_blank())}
+plot_hypothesis <- function(h, title = TRUE) {
+  par(mar = c(4, 4, 2, 0.5))
+  plot(x = NULL, y = NULL, xlim = c(min(h) - 0.5, max(h) + 0.5),
+       ylim = c(min(h) - 0.5, max(h) + 0.5),
+       xlab = "x", ylab = "h(x)",
+       yaxt = "n", xaxt="n",
+       main = ifelse(title == TRUE, "Hypothesis", ""))
+  points(seq(length(h)), h, pch=21, cex=2, bg = palette()[2])
+  axis(1, at=h, labels=h)
+  axis(2, at=c(min(h), max(h)), labels = c("Lower", "Higher"), las = 1)
+}
+
+# TODO: function to plot pairwise condition comparisons
+# condition_comparison_plot(m) {}
 
 # Clean up C++ when package is unloaded.
 .onUnload <- function(libpath) {

@@ -12,7 +12,7 @@ pcc_threshold_plot(m, pcc_threshold = 75)
 \item{pcc_threshold}{a numeric scalar}
 }
 \value{
-an object of class "ggplot"
+No return value, called for side effects.
 }
 \description{
 Plots individual PCCs relative to a user-supplied PCC threshold value.

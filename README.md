@@ -23,8 +23,8 @@ You can install the development version of opa from
 [GitHub](https://github.com/) with:
 
 ``` r
-# install.packages("devtools")
-devtools::install_github("timbeechey/opa")
+# install.packages("remotes")
+remotes::install_github("timbeechey/opa")
 ```
 
 ## Citation
@@ -34,6 +34,17 @@ To cite opa in your work you can use the output of:
 ``` r
 citation(package = "opa")
 ```
+
+## Background
+
+`opa` is an implementation of methods described in publications
+including [Thorngate
+(1987)](https://doi.org/10.1016/S0166-4115(08)60083-7) and [(Grice et
+al., 2015)](https://doi.org/10.1177/2158244015604192). Thorngate (1987)
+attributes the original idea to:
+
+Parsons, D. (1975). *The directory of tunes and musical themes*. S.
+Brown.
 
 ## How ordinal pattern analysis works
 
@@ -67,7 +78,7 @@ dat <- c(65.3, 68.8, 67.0, 73.1)
 
 encodes the ordered pairwise relations `1 1 1 -1 1 1`. The percentage of
 orderings which are correctly classified by the hypothesis (PCC) is the
-main quantity of iterest in ordinal pattern analysis. Comparing `h` and
+main quantity of interest in ordinal pattern analysis. Comparing `h` and
 `dat`, the PCC is `5/6 = 0.833` or 83.3%. An hypothesis which generates
 a greater PCC is preferred over an hypothesis which generates a lower
 PCC for given data.
@@ -103,6 +114,8 @@ Data should be in *wide* format with one column per measurement
 condition and one row per individual:
 
 ``` r
+set.seed(123)
+
 dat <- data.frame(t1 = rnorm(20, mean = 12, sd = 2),
                   t2 = rnorm(20, mean = 15, sd = 2),
                   t3 = rnorm(20, mean = 20, sd = 2),
@@ -110,26 +123,26 @@ dat <- data.frame(t1 = rnorm(20, mean = 12, sd = 2),
                   
 round(dat, 2)
 #>       t1    t2    t3    t4
-#> 1  10.61 14.15 19.37 16.50
-#> 2  10.02 16.42 21.04 15.17
-#> 3  14.44 11.43 20.49 13.62
-#> 4  10.52 12.05 23.08 20.58
-#> 5   7.77 14.22 17.57 15.51
-#> 6   9.19 16.51 17.88 15.69
-#> 7  12.32 11.95 19.01 16.16
-#> 8  10.09 19.56 15.57 18.09
-#> 9  11.88 15.02 21.99 14.59
-#> 10 13.30 14.80 23.54 16.11
-#> 11  9.56 11.03 19.50 16.09
-#> 12 14.13 17.04 18.67 15.26
-#> 13 12.94 15.76 17.74 14.49
-#> 14 11.62 14.64 19.88 16.23
-#> 15 14.38 15.40 19.57 18.63
-#> 16 12.96 13.55 20.48 13.99
-#> 17 11.77 13.49 23.36 16.79
-#> 18 11.97 15.43 20.49 15.79
-#> 19 13.43 12.78 18.93 17.13
-#> 20 12.13 15.91 22.82 18.20
+#> 1  10.88 12.86 18.61 17.76
+#> 2  11.54 14.56 19.58 16.00
+#> 3  15.12 12.95 17.47 16.33
+#> 4  12.14 13.54 24.34 14.96
+#> 5  12.26 13.75 22.42 14.86
+#> 6  15.43 11.63 17.75 17.61
+#> 7  12.92 16.68 19.19 17.90
+#> 8   9.47 15.31 19.07 17.11
+#> 9  10.63 12.72 21.56 18.84
+#> 10 11.11 17.51 19.83 21.10
+#> 11 14.45 15.85 20.51 16.02
+#> 12 12.72 14.41 19.94 12.38
+#> 13 12.80 16.79 19.91 19.01
+#> 14 12.22 16.76 22.74 15.58
+#> 15 10.89 16.64 19.55 15.62
+#> 16 15.57 16.38 23.03 19.05
+#> 17 13.00 16.11 16.90 16.43
+#> 18  8.07 14.88 21.17 14.56
+#> 19 13.40 14.39 20.25 17.36
+#> 20 11.05 14.24 20.43 16.72
 ```
 
 An ordinal pattern analysis model to consider how the hypothesis `h`
@@ -146,30 +159,30 @@ summary(opamod)
 #> Ordinal Pattern Analysis of 4 observations for 20 individuals in 1 group 
 #> 
 #> Between subjects results:
-#>        PCC cval
-#> pooled  90 0.13
+#>          PCC cval
+#> pooled 93.33  0.1
 #> 
 #> Within subjects results:
 #>       PCC cval
 #> 1  100.00 0.04
-#> 2   83.33 0.17
-#> 3   66.67 0.38
+#> 2  100.00 0.04
+#> 3   83.33 0.17
 #> 4  100.00 0.04
 #> 5  100.00 0.04
 #> 6   83.33 0.17
-#> 7   83.33 0.17
-#> 8   50.00 0.62
-#> 9   83.33 0.17
-#> 10 100.00 0.04
+#> 7  100.00 0.04
+#> 8  100.00 0.04
+#> 9  100.00 0.04
+#> 10  83.33 0.17
 #> 11 100.00 0.04
-#> 12  83.33 0.17
-#> 13  83.33 0.17
-#> 14 100.00 0.04
-#> 15 100.00 0.04
+#> 12  66.67 0.38
+#> 13 100.00 0.04
+#> 14  83.33 0.17
+#> 15  83.33 0.17
 #> 16 100.00 0.04
 #> 17 100.00 0.04
-#> 18 100.00 0.04
-#> 19  83.33 0.17
+#> 18  83.33 0.17
+#> 19 100.00 0.04
 #> 20 100.00 0.04
 #> 
 #> PCCs were calculated for pairwise ordinal relationships using a difference threshold of 0.
@@ -184,6 +197,16 @@ plot(opamod)
 
 <img src="man/figures/README-plot_opamod1-1.png" style="display: block; margin: auto;" />
 
+To aid in visual interpretation, iIndividual PCCs and c-values can also
+be plotted relative to specified thresholds:
+
+``` r
+pcc_plot(opamod, threshold = 90)
+cval_plot(opamod, threshold = 0.1)
+```
+
+<img src="man/figures/README-threshold_plots-1.png" width="50%" style="display: block; margin: auto;" /><img src="man/figures/README-threshold_plots-2.png" width="50%" style="display: block; margin: auto;" />
+
 ### Pairwise comparison of measurement conditions
 
 Pairwise comparisons of measurement conditions can be calculated by
@@ -194,17 +217,17 @@ produced by a call to `opa()`:
 condition_comparisons <- compare_conditions(opamod)
 
 condition_comparisons$pccs
-#>     1  2  3 4
-#> 1   -  -  - -
-#> 2  85  -  - -
-#> 3 100 95  - -
-#> 4  95 70 95 -
+#>     1   2  3 4
+#> 1   -   -  - -
+#> 2  90   -  - -
+#> 3 100 100  - -
+#> 4  95  80 95 -
 condition_comparisons$cvals
-#>       1     2     3 4
-#> 1     -     -     - -
-#> 2 0.575     -     - -
-#> 3   0.5 0.525     - -
-#> 4 0.525  0.65 0.525 -
+#>       1   2     3 4
+#> 1     -   -     - -
+#> 2  0.55   -     - -
+#> 3   0.5 0.5     - -
+#> 4 0.525 0.6 0.525 -
 ```
 
 ### Multiple groups
@@ -227,32 +250,32 @@ summary(opamod2)
 #> Ordinal Pattern Analysis of 4 observations for 20 individuals in 4 groups 
 #> 
 #> Between subjects results:
-#>     PCC cval
-#> A 93.33 0.09
-#> B 93.33 0.09
-#> C 86.67 0.16
-#> D 86.67 0.18
+#>      PCC cval
+#> A 100.00 0.04
+#> B  86.67 0.14
+#> C  93.33 0.09
+#> D  93.33 0.11
 #> 
 #> Within subjects results:
 #>   Individual    PCC cval
 #> A          1 100.00 0.04
 #> A          5 100.00 0.04
-#> A          9  83.33 0.17
-#> A         13  83.33 0.17
+#> A          9 100.00 0.04
+#> A         13 100.00 0.04
 #> A         17 100.00 0.04
-#> B          2  83.33 0.17
+#> B          2 100.00 0.04
 #> B          6  83.33 0.17
-#> B         10 100.00 0.04
-#> B         14 100.00 0.04
-#> B         18 100.00 0.04
-#> C          3  66.67 0.38
-#> C          7  83.33 0.17
+#> B         10  83.33 0.17
+#> B         14  83.33 0.17
+#> B         18  83.33 0.17
+#> C          3  83.33 0.17
+#> C          7 100.00 0.04
 #> C         11 100.00 0.04
-#> C         15 100.00 0.04
-#> C         19  83.33 0.17
+#> C         15  83.33 0.17
+#> C         19 100.00 0.04
 #> D          4 100.00 0.04
-#> D          8  50.00 0.62
-#> D         12  83.33 0.17
+#> D          8 100.00 0.04
+#> D         12  66.67 0.38
 #> D         16 100.00 0.04
 #> D         20 100.00 0.04
 #> 

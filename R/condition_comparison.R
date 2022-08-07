@@ -58,7 +58,7 @@ compare_conditions.opafit <- function(result, cval_method = "exact", nreps = 100
       # get a pair of elements from the hypothesis
       h_subset <- result$hypothesis[c(i,j)]
       # get a pair of columns from the data
-      dat_subset <- stats::na.omit(dat[,c(i,j)])
+      dat_subset <- na.omit(dat[,c(i,j)])
       if (progress == TRUE) {
         cat(n, "/", n_condition_pairs, "\n", sep = "")
       }
@@ -80,7 +80,7 @@ compare_conditions.opafit <- function(result, cval_method = "exact", nreps = 100
   # put "-" in empty cells in the upper triangle
   pcc_mat[upper.tri(pcc_mat, diag = TRUE)] <- "-"
   cval_mat[upper.tri(cval_mat, diag = TRUE)] <- "-"
-  # convert matrices to data.frames for pretty pinting
+  # convert matrices to data.frames for pretty printing
   pcc_df <- as.data.frame(pcc_mat)
   cval_df <- as.data.frame(cval_mat)
   # set column names to condition numbers
