@@ -1,5 +1,5 @@
 # opa: An Implementation of Ordinal Pattern Analysis.
-# Copyright (C) 2022 Timothy Beechey (tim.beechey@protonmail.com)
+# Copyright (C) 2022 Timothy Beechey (tim.beechey@proton.me)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 conform <- function(xs, h) {
   h[-which(is.na(xs))]
 }
+
 
 #' Prints a summary of results from a fitted ordinal pattern analysis model.
 #' @param object an object of class "opafit".
@@ -55,10 +56,12 @@ summary.opafit <- function(object, ..., digits = 2L) {
   cat("Chance-values were calculated using the", object$cval_method, "method.\n")
 }
 
+
 #' @export
 print.opafit <- function(x, ...) {
   print(x$call)
 }
+
 
 #' Plot individual PCCs.
 #' @param m an object of class "opafit"
@@ -129,6 +132,7 @@ pcc_plot <- function(m, threshold = NULL, title = TRUE, legend = TRUE) {
     }
   }
 }
+
 
 #' Plot individual chance values
 #' @param m an object of class "opafit"
@@ -201,22 +205,6 @@ cval_plot <- function(m, threshold = NULL, title = TRUE, legend = TRUE) {
   }
 }
 
-#' Plots individual PCCs relative to a user-supplied PCC threshold value.
-#' @param m an object of class "opafit"
-#' @param pcc_threshold a numeric scalar
-#' @return No return value, called for side effects.
-#' @examples
-#' dat <- data.frame(t1 = c(9, 4, 8, 10),
-#'                   t2 = c(8, 8, 12, 10),
-#'                   t3 = c(8, 5, 10, 11))
-#' opamod <- opa(dat, 1:3)
-#' pcc_threshold_plot(opamod)
-#' pcc_threshold_plot(opamod, pcc_threshold = 85)
-#' @export
-pcc_threshold_plot <- function(m, pcc_threshold = 75) {
-  warning("pcc_threshold_plot() is deprecated. Use pcc_plot(x, threshold = n) instead")
-  pcc_plot(m, threshold = pcc_threshold)
-}
 
 #' Plots individual-level PCCs and chance-values.
 #' @param x an object of class "opafit" produced by \code{opa()}
@@ -250,6 +238,7 @@ plot.opafit <- function(x, pcc_threshold = NULL, cval_threshold = NULL, ...) {
   }
 }
 
+
 #' Group-level PCC and chance values.
 #'
 #' @details
@@ -271,8 +260,10 @@ group_results <- function(m, digits) {
   UseMethod("group_results")
 }
 
+
 #' @export
 group_results.default <- function(m, digits) .NotYetImplemented()
+
 
 #' @export
 group_results.opafit <- function(m, digits = 2) {
@@ -290,6 +281,7 @@ group_results.opafit <- function(m, digits = 2) {
     return(out)
   }
 }
+
 
 #' Individual-level PCC and chance values.
 #'
@@ -314,8 +306,10 @@ individual_results <- function(m, digits) {
   UseMethod("individual_results")
 }
 
+
 #' @export
 individual_results.default <- function(m, digits) .NotYetImplemented()
+
 
 #' @export
 individual_results.opafit <- function(m, digits = 2) {
@@ -332,6 +326,7 @@ individual_results.opafit <- function(m, digits = 2) {
   }
 }
 
+
 #' Plot a hypothesis.
 #' @param h a numeric vector
 #' @param title a boolean indicating whether to include a plot title
@@ -342,18 +337,16 @@ individual_results.opafit <- function(m, digits = 2) {
 #' @export
 plot_hypothesis <- function(h, title = TRUE) {
   par(mar = c(4, 4, 2, 0.5))
-  plot(x = NULL, y = NULL, xlim = c(min(h) - 0.5, max(h) + 0.5),
+  plot(x = NULL, y = NULL, xlim = c(0.5, length(h) + 0.5),
        ylim = c(min(h) - 0.5, max(h) + 0.5),
        xlab = "x", ylab = "h(x)",
        yaxt = "n", xaxt="n",
        main = ifelse(title == TRUE, "Hypothesis", ""))
-  points(seq(length(h)), h, pch=21, cex=2, bg = palette()[2])
+  points(seq(length(h)), h, pch=21, cex=2, bg = palette()[1])
   axis(1, at=h, labels=h)
   axis(2, at=c(min(h), max(h)), labels = c("Lower", "Higher"), las = 1)
 }
 
-# TODO: function to plot pairwise condition comparisons
-# condition_comparison_plot(m) {}
 
 # Clean up C++ when package is unloaded.
 .onUnload <- function(libpath) {

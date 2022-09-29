@@ -1,5 +1,5 @@
 # opa: An Implementation of Ordinal Pattern Analysis.
-# Copyright (C) 2022 Timothy Beechey (tim.beechey@protonmail.com)
+# Copyright (C) 2022 Timothy Beechey (tim.beechey@proton.me)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -69,6 +69,7 @@ cval_exact <- function(pcc_out, progress) {
            observed_group_pcc = pcc_out$group_pcc))
 }
 
+
 cval_stochastic <- function(pcc_out, nreps, progress) {
   individual_cvals <- numeric(dim(pcc_out$data)[1])
   individual_perm_pccs <- matrix(numeric(0),
@@ -79,7 +80,7 @@ cval_stochastic <- function(pcc_out, nreps, progress) {
   # show a progress bar
   if (progress == TRUE) {
     progress_bar <- txtProgressBar(min = 0, max = dim(pcc_out$data)[1],
-                                          initial = 0, width = 60, style = 3)
+                                   initial = 0, width = 60, style = 3)
   }
 
   for (i in 1:dim(pcc_out$data)[1]) {
