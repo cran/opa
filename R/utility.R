@@ -1,5 +1,5 @@
 # opa: An Implementation of Ordinal Pattern Analysis.
-# Copyright (C) 2022 Timothy Beechey (tim.beechey@proton.me)
+# Copyright (C) 2023 Timothy Beechey (tim.beechey@proton.me)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,16 +13,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-
-# Removes elements of a hypothesis vector that correspond to the position of
-# NAs in a numeric vector of data (a data row).
-# param: xs a numeric vector
-# param: h a numeric vector
-# return: a numeric vector
-conform <- function(xs, h) {
-  h[-which(is.na(xs))]
-}
 
 
 #' Prints a summary of results from a fitted ordinal pattern analysis model.
@@ -115,7 +105,7 @@ pcc_plot <- function(m, threshold = NULL, title = TRUE, legend = TRUE) {
              yaxt = "n",
              lty=ifelse(plot_dat$pcc >= threshold, 1, 3))
   }
-  if (! is.null(threshold))
+  if (!is.null(threshold))
     abline(v=threshold, col="red", lty = 2)
   points(plot_dat$pcc,
          seq(nrow(plot_dat)),

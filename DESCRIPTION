@@ -1,7 +1,7 @@
 Package: opa
 Type: Package
 Title: An Implementation of Ordinal Pattern Analysis
-Version: 0.6
+Version: 0.7.1
 Authors@R: person("Timothy", "Beechey", email = "tim.beechey@proton.me",
     role = c("aut", "cre"), comment = c(ORCID = "0000-0001-8858-946X"))
 Description: Quantifies hypothesis to data fit for repeated measures 
@@ -19,10 +19,10 @@ LinkingTo: cpp11, Rcpp
 Imports: Rcpp
 Suggests: rmarkdown, knitr, testthat (>= 3.0.0)
 Config/testthat/edition: 3
-SystemRequirements: C++11
+SystemRequirements: C++17
 NeedsCompilation: yes
-Packaged: 2023-01-06 16:18:16 UTC; tim
+Packaged: 2023-02-03 23:07:13 UTC; tim
 Author: Timothy Beechey [aut, cre] (<https://orcid.org/0000-0001-8858-946X>)
 Maintainer: Timothy Beechey <tim.beechey@proton.me>
 Repository: CRAN
-Date/Publication: 2023-01-06 20:20:02 UTC
+Date/Publication: 2023-02-03 23:22:29 UTC
