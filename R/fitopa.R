@@ -70,9 +70,6 @@
 #'   \item{individual_pccs}{a vector containing the percentage of pairwise
 #'   orderings that were correctly classified by the hypothesis for each data
 #'   row.}
-#'   \item{condition_pccs}{a matrix containing PCCs for each pair of
-#'   conditions, or a list containing such a matrix for each group level if a
-#'   grouping variable is passed to \code{opa}}
 #'   \item{correct_pairs}{an integer representing the number of pairwise
 #'   orderings pooled across all data rows that were correctly classified by the
 #'   hypothesis.}
@@ -81,13 +78,21 @@
 #'   \item{group_cval}{the group-level chance value.}
 #'   \item{individual_cvals}{a vector containing chance values for each data
 #'   row}
-#'   \item{n_permutations}{an integer, the number of permutations of the data
+#'   \item{rand_pccs}{A vector of PCCS calculated from each random ordering
+#'   with length equal to nreps, a list of vectors if a \code{group} vector
+#'   was passed to \code{opa()}.}
+#'   \item{call}{The matched call}
+#'   \item{hypothesis}{The hypothesis vector passed to \code{opa()}}
+#'   \item{pairing_type}{A string indicating the method of pairing passed
+#'   to \code{opa()}.}
+#'   \item{diff_threshold}{The numeric difference threshold used to calculate
+#'   PCCs. If no value was passed in the \code{diff_threshold}, the default of
+#'   0 is used.}
+#'   \item{data}{The data.frame passed to \code{opa()}.}
+#'   \item{groups}{The vector of groups passed to \code{opa}. If no group vector
+#'   was passed the default of NULL is used.}
+#'   \item{nreps}{an integer, the number of random reorderins of the data
 #'   used to compute chance values.}
-#'   \item{pccs_geq_observed}{an integer, the number of permutations which
-#'   generated PCC values at least as great as the PCC of the observed data.}
-#'   \item{pcc_replicates}{a matrix containing PCC values, one column per data
-#'   row, computed from all permutations used to compute chance values. }
-#'   \item{call}{the matched call}
 #'   }
 #' @examples
 #' dat <- data.frame(group = c("a", "b", "a", "b"),
@@ -105,6 +110,11 @@
 opa <- function(dat, hypothesis, group = NULL, pairing_type = "pairwise",
                 diff_threshold = 0, nreps = 1000L) {
   # verify the arguments
+  if (!is.null(group)) {
+    stopifnot("There must be at least 2 groups"= length(group) >= 2)
+    stopifnot("The groups vector must contain 1 item per data row"= length(group) == dim(dat)[1])
+  }
+  stopifnot("Data must be passed to opa() in a data.frame"= is.data.frame(dat))
   stopifnot("Hypothesis and data rows are not the same length"= dim(dat)[2] == length(hypothesis))
   stopifnot("pairing_type must be 'pairwise' or 'adjacent'"= pairing_type %in% c("pairwise", "adjacent"))
   stopifnot("diff_threshold must be a number"= class(diff_threshold) %in% c("integer", "numeric"))
@@ -119,7 +129,7 @@ opa <- function(dat, hypothesis, group = NULL, pairing_type = "pairwise",
     mat <- as.matrix(dat)
 
     pccs <- pcc(mat, hypothesis, pairing_type, diff_threshold)
-    cvalues <- c_calc_cvalues(pccs, nreps)
+    cvalues <- calc_cvalues(pccs, nreps)
 
     return(
       structure(
@@ -129,12 +139,14 @@ opa <- function(dat, hypothesis, group = NULL, pairing_type = "pairwise",
              total_pairs = pccs$total_pairs,
              group_cval = cvalues$group_cval,
              individual_cvals = cvalues$individual_cvals,
+             rand_pccs = cvalues$rand_pccs,
              call = match.call(),
              hypothesis = hypothesis,
              pairing_type = pairing_type,
              diff_threshold = diff_threshold,
              data = dat,
-             groups = group),
+             groups = group,
+             nreps = nreps),
         class = "opafit"))
 
   } else { # multiple groups
@@ -153,12 +165,16 @@ opa <- function(dat, hypothesis, group = NULL, pairing_type = "pairwise",
     pcc_replicates <- vector(nlevels(group), mode="list")
     cond_pccs <- vector(nlevels(group), mode="list")
 
+    group_rand_pccs <- data.frame(n = 1:nreps)
+
     for (i in 1:nlevels(group)) {
       idx <- which(group == groups[i])
       subgroup_dat <- dat[idx,]
       subgroup_mat <- as.matrix(subgroup_dat)
       subgroup_pccs <- pcc(subgroup_mat, hypothesis, pairing_type, diff_threshold)
-      subgroup_cvalues <- c_calc_cvalues(subgroup_pccs, nreps)
+      subgroup_cvalues <- calc_cvalues(subgroup_pccs, nreps)
+
+      group_rand_pccs[groups[i]] <- subgroup_cvalues$rand_pccs
 
       group_pccs[i] <- subgroup_pccs$group_pcc
       correct_pairs <- correct_pairs + subgroup_pccs$correct_pairs
@@ -181,6 +197,7 @@ opa <- function(dat, hypothesis, group = NULL, pairing_type = "pairwise",
              total_pairs = total_pairs,
              group_cval = group_cvals,
              individual_cvals = individual_cvals,
+             group_rand_pccs = group_rand_pccs,
              individual_idx = individual_idx,
              group_labels = group_labels_vec,
              call = match.call(),
@@ -188,7 +205,8 @@ opa <- function(dat, hypothesis, group = NULL, pairing_type = "pairwise",
              pairing_type = pairing_type,
              diff_threshold = diff_threshold,
              data = dat,
-             groups = group),
+             groups = group,
+             nreps = nreps),
         class = "opafit"))
   }
 }
