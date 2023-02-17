@@ -18,16 +18,10 @@
 
 
 #include <Rcpp.h>
-#include <cpp11.hpp>
 #include <algorithm>
 #include <random>
 
 using namespace Rcpp;
-using namespace cpp11;
-
-[[cpp11::register]]
-void fun() {}
-
 
 // [[Rcpp::export]]
 NumericVector conform(NumericVector xs, NumericVector h) {
@@ -37,9 +31,9 @@ NumericVector conform(NumericVector xs, NumericVector h) {
   }
   NumericVector h_trimmed(count);
   int idx{};
-  for (double x : xs) {
-    if (!std::isnan(x)) {
-      h_trimmed[idx] = h[idx];
+  for (double x{}; x < xs.length(); x++) {
+    if (!std::isnan(xs[x])) {
+      h_trimmed[idx] = h[x];
       idx++;
     }
   }
@@ -63,7 +57,7 @@ built-in sign() function when diff_threshold = 0.
 IntegerVector sign_with_threshold(NumericVector xs, double diff_threshold) {
   IntegerVector sign_vector(xs.length());
   for (int i{}; i < xs.length(); i++) {
-    if (is_na(xs[i])) {
+    if (std::isnan(xs[i])) {
         sign_vector[i] = NA_INTEGER;
     } else if (xs[i] > diff_threshold) {
         sign_vector[i] = 1;
@@ -128,7 +122,7 @@ IntegerVector ordering(NumericVector xs, String pairing_type, float diff_thresho
 
 // [[Rcpp::export]]
 List row_pcc(NumericVector xs, NumericVector h, String pairing_type, double diff_threshold) {
-  NumericVector hypothesis_no_nas = conform(xs, h);
+  NumericVector hypothesis_no_nas = any(is_na(xs)).is_true() ? conform(xs, h) : h;
   IntegerVector hypothesis_ordering = ordering(hypothesis_no_nas, pairing_type, 0);
   IntegerVector row_ordering = ordering(na_omit(xs), pairing_type, diff_threshold);
   LogicalVector match(row_ordering.length());
