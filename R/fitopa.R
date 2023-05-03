@@ -90,8 +90,8 @@
 #'   0 is used.}
 #'   \item{data}{The data.frame passed to \code{opa()}.}
 #'   \item{groups}{The vector of groups passed to \code{opa}. If no group vector
-#'   was passed the default of NULL is used.}
-#'   \item{nreps}{an integer, the number of random reorderins of the data
+#'   was passed to \code{opa()} the default of NULL is used.}
+#'   \item{nreps}{an integer, the number of random re-orderings of the data
 #'   used to compute chance values.}
 #'   }
 #' @examples
@@ -125,8 +125,7 @@ opa <- function(dat, hypothesis, group = NULL, pairing_type = "pairwise",
   stopifnot("diff_threshold must be a single number"= length(diff_threshold) == 1)
 
   if (is.null(group)) { # single groups
-    # convert the data.frame input to a matrix for speed
-    mat <- as.matrix(dat)
+    mat <- as.matrix(dat) # data must be a matrix
 
     pccs <- pcc(mat, hypothesis, pairing_type, diff_threshold)
     cvalues <- calc_cvalues(pccs, nreps)
