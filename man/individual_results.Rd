@@ -19,9 +19,9 @@ with 1 row per row of data.
 Individual-level PCC and chance values.
 }
 \details{
-If the model was fitted with no grouping variable, a matrix of PCCs and
-c-values are returned corresponding to the order of rows in the data. If the
-\code{opa} model was fitted with a grouping variable specified, a table of
+If the \code{opa} model was fitted with no grouping variable, a matrix of PCCs
+and c-values are returned corresponding to the order of rows in the data. If
+the \code{opa} model was fitted with a grouping variable specified, a table of
 PCCs and c-values is returned ordered by factor level of the grouping
 variable.
 }
@@ -29,6 +29,7 @@ variable.
 dat <- data.frame(t1 = c(9, 4, 8, 10),
                   t2 = c(8, 8, 12, 10),
                   t3 = c(8, 5, 10, 11))
-opamod <- opa(dat, 1:3)
+h <- hypothesis(1:3)
+opamod <- opa(dat, h)
 individual_results(opamod)
 }

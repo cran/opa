@@ -1,13 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# opa
-
-<!-- badges: start -->
-
-![](https://www.r-pkg.org/badges/version-ago/opa?color=orange)
-![](https://cranlogs.r-pkg.org/badges/grand-total/opa)
-<!-- badges: end -->
+# opa <a href="https://timbeechey.github.io/opa/"></a>
 
 An R package for ordinal pattern analysis.
 
@@ -27,69 +21,6 @@ You can install the development version of opa from
 remotes::install_github("timbeechey/opa")
 ```
 
-## Citation
-
-To cite opa in your work you can use the output of:
-
-``` r
-citation(package = "opa")
-```
-
-## Background
-
-`opa` is an implementation of methods described in publications
-including [Thorngate
-(1987)](https://doi.org/10.1016/S0166-4115(08)60083-7) and [Grice et
-al. (2015)](https://doi.org/10.1177/2158244015604192). Thorngate (1987)
-attributes the original idea to:
-
-Parsons, D. (1975). *The directory of tunes and musical themes*. S.
-Brown.
-
-## How ordinal pattern analysis works
-
-Ordinal pattern analysis is similar to Kendall’s Tau. Whereas Kendall’s
-tau is a measure of similarity between two data sets in terms of rank
-ordering, ordinal pattern analysis is intended to quantify the match
-between a hypothesis and patterns of individual-level data across
-conditions or measurement instances.
-
-Ordinal pattern analysis works by comparing the relative ordering of
-pairs of observations and computing whether those pairwise relations are
-matched by a hypothesis. Each pairwise ordered relation is classified as
-an increases, a decrease, or as no change. These classifications are
-encoded as 1, -1 and 0, respectively. For example, a hypothesis of a
-monotonic increase in a response variable across four experimental
-conditions can be specified as:
-
-``` r
-h <- c(1, 2, 3, 4)
-```
-
-Note that the absolute values are not important, only their relative
-ordering. The hypothesis `h` encodes six pairwise relations, all
-increases: `1 1 1 1 1 1`.
-
-A row of individual data representing measurements across four
-conditions, such as:
-
-``` r
-dat <- c(65.3, 68.8, 67.0, 73.1)
-```
-
-encodes six ordered pairwise relations `1 1 1 -1 1 1`. The percentage of
-orderings which are correctly classified by the hypothesis (*PCC*) is
-the main quantity of interest in ordinal pattern analysis. Comparing `h`
-and `dat`, the PCC is `5/6 = 0.833` or 83.3%. A hypothesis which
-generates a greater PCC is preferred over a hypothesis which generates a
-lower PCC for given data.
-
-It is also possible to calculate a *chance-value* for a PCC which is
-equal to the chance that a PCC at least as great as the PCC of the
-observed data could occur as a result of a random re-ordering of the
-data. Chance values can be computed using either a permutation test or a
-randomization test.
-
 ## Using `opa`
 
 ``` r
@@ -100,13 +31,24 @@ A hypothesized relative ordering of a response variable across
 conditions is specified with a numeric vector:
 
 ``` r
-h <- c(1, 2, 4, 3)
+(h <- hypothesis(c(1, 2, 4, 3), type = "pairwise"))
+#> ********** Ordinal Hypothesis **********
+#> Hypothesis type: pairwise 
+#> Raw hypothesis:
+#>  1 2 4 3 
+#> Ordinal relations:
+#>  1 1 1 1 1 -1 
+#> N conditions: 4 
+#> N hypothesised ordinal relations: 6 
+#> N hypothesised increases: 5 
+#> N hypothesised decreases: 1 
+#> N hypothesised equalities: 0
 ```
 
-The hypothesis can be plotted with the `plot_hypothesis()` function:
+The hypothesis can be visualised with the `plot()` function:
 
 ``` r
-plot_hypothesis(h)
+plot(h)
 ```
 
 <img src="man/figures/README-plot_hypothesis-1.png" style="display: block; margin: auto;" />
@@ -146,8 +88,8 @@ round(dat, 2)
 #> 20 11.05 14.24 20.43 16.72
 ```
 
-An ordinal pattern analysis model to consider how the hypothesis `h`
-matches each individual pattern of results in `dat` can be fitted using:
+An ordinal pattern analysis model of how the hypothesis `h` matches each
+individual pattern of results in `dat` can be fitted using:
 
 ``` r
 opamod <- opa(dat, h)
@@ -202,11 +144,10 @@ To aid interpretation, individual PCCs and c-values can also be plotted
 relative to user-specified thresholds:
 
 ``` r
-pcc_plot(opamod, threshold = 90)
-cval_plot(opamod, threshold = 0.1)
+plot(opamod, pcc_threshold = 90, cval_threshold = 0.1)
 ```
 
-<img src="man/figures/README-threshold_plots-1.png" width="50%" style="display: block; margin: auto;" /><img src="man/figures/README-threshold_plots-2.png" width="50%" style="display: block; margin: auto;" />
+<img src="man/figures/README-threshold_plots-1.png" style="display: block; margin: auto;" />
 
 ### Pairwise comparison of measurement conditions
 
@@ -217,10 +158,20 @@ produced by a call to `opa()`:
 ``` r
 condition_comparisons <- compare_conditions(opamod)
 
-condition_comparisons$pccs
-#> [1]  90 100  95 100  80  95
-condition_comparisons$cvals
-#> [1] 0.000 0.000 0.000 0.000 0.002 0.000
+print(condition_comparisons)
+#> Pairwise PCCs:
+#>     1   2  3 4
+#> 1   -   -  - -
+#> 2  90   -  - -
+#> 3 100 100  - -
+#> 4  95  80 95 -
+#> 
+#> Pairwise chance values:
+#>        1      2      3 4
+#> 1      -      -      - -
+#> 2 <0.001      -      - -
+#> 3 <0.001 <0.001      - -
+#> 4 <0.001  0.002 <0.001 -
 ```
 
 ### Multiple groups
@@ -294,18 +245,18 @@ groups can be calculated using the `compare_groups()` function.
 group_comp <- compare_groups(opamod2, "A", "B")
 ```
 
-The difference in group-level PCCs can then be checked:
+The difference in group-level PCCs along with the c-value of the
+difference can then be checked:
 
 ``` r
-group_comp$pcc_diff
-#> [1] 13.33333
-```
-
-Along with the c-value of the difference:
-
-``` r
-group_comp$cval
-#> [1] 0.43
+summary(group_comp)
+#> ********* Group Comparison **********
+#> Group 1: A 
+#> Group 2: B 
+#> Group 1 PCC: 100 
+#> Group 2 PCC: 86.66667 
+#> PCC difference: 13.33333 
+#> cval: 0.43
 ```
 
 ## Acknowledgements

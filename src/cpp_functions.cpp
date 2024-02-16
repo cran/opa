@@ -15,7 +15,6 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <RcppArmadillo.h>
-using namespace Rcpp;
 // [[Rcpp::depends(RcppArmadillo)]]
 
 // Skip elements in a hypothesis vector that correspond to NA values in the
@@ -42,16 +41,13 @@ arma::vec conform(arma::rowvec xs, arma::vec h) {
 // @return an int from the set {1, 0, -1}.
 // [[Rcpp::export]]
 arma::vec sign_with_threshold(arma::vec xs, double diff_threshold) {
-    arma::vec sign_vector(xs.n_elem);
-    for (size_t i {}; i < xs.n_elem; i++) {
-        if (std::isnan(xs[i])) {
-            sign_vector[i] = arma::datum::nan;
-        } else if (xs[i] > diff_threshold) {
+    size_t n {xs.n_elem};
+    arma::vec sign_vector {arma::zeros(n)};
+    for (size_t i {}; i < n; i++) {
+        if (xs[i] > diff_threshold) {
             sign_vector[i] = 1;
         } else if (xs[i] < -diff_threshold) {
             sign_vector[i] = -1;
-        } else {
-            sign_vector[i] = 0;
         }
     }
     return sign_vector;
@@ -60,20 +56,20 @@ arma::vec sign_with_threshold(arma::vec xs, double diff_threshold) {
 
 // Calculate the difference between every pair of elements in a vector.
 // This function is called when the pairing_type = "pairwise" option is used.
-// When the pairing_type = "adjacent" option is used, R's built-in diff()
-// function is used instead. For an input vector of length N, the output vector
-// has length equal to the Nth-1 triangular number, calculated as (N-1 * N) / 2.
+// For an input vector of length N, the output vector has length equal to the 
+// Nth-1 triangular number, calculated as (N-1 * N) / 2.
 // @param xs, a numeric vector.
 // @return a numeric vector.
 // [[Rcpp::export]]
 arma::vec all_diffs(arma::vec xs) {
     size_t count {};
+    size_t n {xs.n_elem};
     // Calculate the length of the vector as the Nth-1 triangular number
-    auto n_pairs {((xs.n_elem - 1) * xs.n_elem) / 2};
+    auto n_pairs {((n - 1) * n) / 2};
     arma::vec diffs(n_pairs);
     // Fill the diffs vector with the difference between each pair of vector elements
-    for (size_t i {}; i < xs.n_elem; i++) {
-        for (size_t j {i+1}; j < xs.n_elem; j++) {
+    for (size_t i {}; i < n; i++) {
+        for (size_t j {i+1}; j < n; j++) {
             diffs(count) = xs(j) - xs(i);
             count++;
         }
@@ -94,9 +90,9 @@ arma::vec all_diffs(arma::vec xs) {
 // [[Rcpp::export]]
 arma::vec ordering(arma::vec xs, std::string pairing_type, double diff_threshold) {
     if (pairing_type == "pairwise") {
-        return(sign_with_threshold(all_diffs(xs), diff_threshold));   
+        return(sign_with_threshold(all_diffs(xs), diff_threshold));
     } else{
-        return(sign_with_threshold(arma::diff(xs), diff_threshold));
+        return sign_with_threshold(arma::diff(xs), diff_threshold);
     }
 }
 
@@ -119,9 +115,31 @@ Rcpp::List row_pcc(arma::rowvec xs, arma::vec h, std::string pairing_type, doubl
     auto n_pairs {match.n_elem};
     auto correct_pairs {arma::accu(match)};
     auto pcc {(correct_pairs/n_pairs) * 100};
-    return Rcpp::List::create(Rcpp::_["n_pairs"] = n_pairs,
-                              Rcpp::_["correct_pairs"] = correct_pairs,
-                              Rcpp::_["pcc"] = pcc);
+    return Rcpp::List::create(Rcpp::Named("n_pairs") = n_pairs,
+                              Rcpp::Named("correct_pairs") = correct_pairs,
+                              Rcpp::Named("pcc") = pcc);
+}
+
+// Calculate the percentage of correct classifications for a single row of data.
+// This function returns only the scalar PCC value for use in c-value calculation.
+// @param xs, a numeric vector.
+// @param h, a numeric vector.
+// @param pairing_type, a string, either "adjacent" or "pairwise".
+// @param diff_threshold, a non-negative double.
+// @return a double
+// [[Rcpp::export]]
+double scalar_row_pcc(arma::rowvec xs, arma::vec h, std::string pairing_type, double diff_threshold) {
+    arma::vec hypothesis_no_nas = xs.has_nan() ? conform(xs, h) : h;
+    arma::vec hypothesis_ordering = ordering(hypothesis_no_nas, pairing_type, 0);
+    arma::vec row_ordering = ordering(xs.elem(arma::find_finite(xs)), pairing_type, diff_threshold);
+    arma::vec match(row_ordering.n_elem);
+    for (size_t i{}; i < row_ordering.n_elem; i++) {
+        match(i) = row_ordering(i) == hypothesis_ordering(i);
+    }
+    auto n_pairs {match.n_elem};
+    auto correct_pairs {arma::accu(match)};
+    auto pcc {(correct_pairs/n_pairs) * 100};
+    return pcc;
 }
 
 
@@ -150,14 +168,14 @@ Rcpp::List pcc(arma::mat dat, arma::vec h, std::string pairing_type, double diff
     
     auto group_pcc {(correct_pairs / (double)total_pairs) * 100};
     
-    return Rcpp::List::create(Rcpp::_["group_pcc"] = group_pcc,
-                              Rcpp::_["individual_pccs"] = individual_pccs,
-                              Rcpp::_["total_pairs"] = total_pairs,
-                              Rcpp::_["correct_pairs"] = correct_pairs,
-                              Rcpp::_["data"] = dat,
-                              Rcpp::_["hypothesis"] = h,
-                              Rcpp::_["pairing_type"] = pairing_type,
-                              Rcpp::_["diff_threshold"] = diff_threshold);
+    return Rcpp::List::create(Rcpp::Named("group_pcc") = group_pcc,
+                              Rcpp::Named("individual_pccs") = individual_pccs,
+                              Rcpp::Named("total_pairs") = total_pairs,
+                              Rcpp::Named("correct_pairs") = correct_pairs,
+                              Rcpp::Named("data") = dat,
+                              Rcpp::Named("hypothesis") = h,
+                              Rcpp::Named("pairing_type") = pairing_type,
+                              Rcpp::Named("diff_threshold") = diff_threshold);
 }
 
 
@@ -174,17 +192,18 @@ Rcpp::List calc_cvalues(Rcpp::List pcc_out, int nreps) {
     auto diff_threshold {pcc_out["diff_threshold"]};
     arma::vec individual_pccs = pcc_out["individual_pccs"];
     auto obs_group_pcc {pcc_out["group_pcc"]};
+    auto num_rows {dat.n_rows};
     
     arma::vec rand_group_pccs(nreps);
-    arma::vec indiv_rand_pcc_geq_obs_pcc(dat.n_rows);
-    arma::vec individual_cvals(dat.n_rows);
+    arma::vec indiv_rand_pcc_geq_obs_pcc(num_rows);
+    arma::vec individual_cvals(num_rows);
     
     for (size_t i {}; i < nreps; i++) {
         Rcpp::checkUserInterrupt();
-        arma::vec rand_indiv_pccs(dat.n_rows);
-        for (size_t j {}; j < dat.n_rows; j++) {
-            Rcpp::List rand_row_pcc = row_pcc(arma::shuffle(dat.row(j)), hypothesis, pairing_type, diff_threshold);
-            auto rand_indiv_pcc {rand_row_pcc["pcc"]};
+        arma::vec rand_indiv_pccs(num_rows);
+        for (size_t j {}; j < num_rows; j++) {
+            auto rand_indiv_pcc = scalar_row_pcc(arma::shuffle(dat.row(j)), hypothesis, pairing_type, diff_threshold);
+            //auto rand_indiv_pcc {rand_row_pcc["pcc"]};
             rand_indiv_pccs(j) = rand_indiv_pcc;
             if (rand_indiv_pccs(j) >= individual_pccs[j]) {
                 indiv_rand_pcc_geq_obs_pcc[j] += 1;
@@ -198,7 +217,7 @@ Rcpp::List calc_cvalues(Rcpp::List pcc_out, int nreps) {
     
     auto group_cval = arma::accu(rand_group_pccs >= obs_group_pcc) / double(nreps);
     
-    return Rcpp::List::create(Rcpp::_["group_cval"] = group_cval, 
-                              Rcpp::_["individual_cvals"] = individual_cvals,
-                              Rcpp::_["rand_pccs"] = rand_group_pccs);
+    return Rcpp::List::create(Rcpp::Named("group_cval") = group_cval, 
+                              Rcpp::Named("individual_cvals") = individual_cvals,
+                              Rcpp::Named("rand_pccs") = rand_group_pccs);
 }
