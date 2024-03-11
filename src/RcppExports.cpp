@@ -35,6 +35,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// triangular
+size_t triangular(size_t n);
+RcppExport SEXP _opa_triangular(SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< size_t >::type n(nSEXP);
+    rcpp_result_gen = Rcpp::wrap(triangular(n));
+    return rcpp_result_gen;
+END_RCPP
+}
 // all_diffs
 arma::vec all_diffs(arma::vec xs);
 RcppExport SEXP _opa_all_diffs(SEXP xsSEXP) {
@@ -102,14 +113,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // calc_cvalues
-Rcpp::List calc_cvalues(Rcpp::List pcc_out, int nreps);
-RcppExport SEXP _opa_calc_cvalues(SEXP pcc_outSEXP, SEXP nrepsSEXP) {
+Rcpp::List calc_cvalues(Rcpp::List pcc_out, int nreps, bool shuffle_across_individuals);
+RcppExport SEXP _opa_calc_cvalues(SEXP pcc_outSEXP, SEXP nrepsSEXP, SEXP shuffle_across_individualsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::List >::type pcc_out(pcc_outSEXP);
     Rcpp::traits::input_parameter< int >::type nreps(nrepsSEXP);
-    rcpp_result_gen = Rcpp::wrap(calc_cvalues(pcc_out, nreps));
+    Rcpp::traits::input_parameter< bool >::type shuffle_across_individuals(shuffle_across_individualsSEXP);
+    rcpp_result_gen = Rcpp::wrap(calc_cvalues(pcc_out, nreps, shuffle_across_individuals));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -117,12 +129,13 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_opa_conform", (DL_FUNC) &_opa_conform, 2},
     {"_opa_sign_with_threshold", (DL_FUNC) &_opa_sign_with_threshold, 2},
+    {"_opa_triangular", (DL_FUNC) &_opa_triangular, 1},
     {"_opa_all_diffs", (DL_FUNC) &_opa_all_diffs, 1},
     {"_opa_ordering", (DL_FUNC) &_opa_ordering, 3},
     {"_opa_row_pcc", (DL_FUNC) &_opa_row_pcc, 4},
     {"_opa_scalar_row_pcc", (DL_FUNC) &_opa_scalar_row_pcc, 4},
     {"_opa_pcc", (DL_FUNC) &_opa_pcc, 4},
-    {"_opa_calc_cvalues", (DL_FUNC) &_opa_calc_cvalues, 2},
+    {"_opa_calc_cvalues", (DL_FUNC) &_opa_calc_cvalues, 3},
     {NULL, NULL, 0}
 };
 

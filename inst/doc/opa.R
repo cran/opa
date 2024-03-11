@@ -4,7 +4,7 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-palette(c("#56B4E9", "#E69F00", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"))
+palette(c("#0073C2", "#EFC000", "#868686", "#CD534C"))
 
 library(lattice)
 
@@ -17,17 +17,15 @@ str(pituitary)
 ## ----plot_data, fig.width=6, fig.height=6-------------------------------------
 xyplot(distance ~ age | individual, pituitary, type = c("g", "p", "l"),
        groups = sex, cex = 1.2, pch = 21,
-       fill = c("#E69F0070", "#0072B270"),
-       col = c("#E69F00", "#0072B2"),
+       fill = c("#EFC00070", "#0073C270"), col = c("#EFC000", "#0073C2"),
        scales = list(x = list(at = c(8, 10, 12, 14))),
-       xlab = "Age (years)",
-       ylab = "Distance (mm)",
+       xlab = "Age (years)", ylab = "Distance (mm)",
        main = "Pituitary-Pterygomaxillary Fissure Distance",
        key = list(space = "bottom", columns = 2,
                   text = list(c("Female", "Male")),
-                  lines = list(col = c("#E69F00", "#0072B2")),
-                  points = list(pch = 21, fill = c("#E69F0070", "#0072B270"),
-                                col = c("#E69F00", "#0072B2"))))
+                  lines = list(col = c("#EFC000", "#0073C2")),
+                  points = list(pch = 21, fill = c("#EFC00070", "#0073C270"),
+                                col = c("#EFC000", "#0073C2"))))
 
 ## ----reshape_data-------------------------------------------------------------
 dat_wide <- reshape(data = pituitary,
@@ -63,6 +61,9 @@ compare_conditions(m1)
 ## ----define_h2----------------------------------------------------------------
 h2 <- hypothesis(c(2, 1, 3, 4))
 
+## ----plot_h2, fig.width=4, fig.height=4---------------------------------------
+plot(h2)
+
 ## ----print_h2-----------------------------------------------------------------
 print(h2)
 
@@ -70,13 +71,22 @@ print(h2)
 m2 <- opa(dat_wide[,3:6], h2)
 
 ## ----compare_hypotheses-------------------------------------------------------
-compare_hypotheses(m1, m2)
+(comp_h1_h2 <- compare_hypotheses(m1, m2))
+
+## -----------------------------------------------------------------------------
+plot(comp_h1_h2)
 
 ## ----fit_model3---------------------------------------------------------------
 m3 <- opa(dat_wide[,3:6], h1, group = dat_wide$sex)
 
+## ----plot_model3--------------------------------------------------------------
+plot(m3)
+
 ## ----compare_groups-----------------------------------------------------------
-compare_groups(m3, "M", "F")
+(comp_m_f <- compare_groups(m3, "M", "F"))
+
+## -----------------------------------------------------------------------------
+plot(comp_m_f)
 
 ## ----fit_model4---------------------------------------------------------------
 m4 <- opa(dat_wide[,3:6], h1, group = dat_wide$sex, diff_threshold = 1)

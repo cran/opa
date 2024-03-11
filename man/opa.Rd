@@ -10,7 +10,8 @@ opa(
   group = NULL,
   pairing_type = "pairwise",
   diff_threshold = 0,
-  nreps = 1000L
+  nreps = 1000L,
+  shuffle_across_individuals = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ opa(
 \item{diff_threshold}{a positive integer or floating point number}
 
 \item{nreps}{an integer, ignored if \code{cval_method = "exact"}}
+
+\item{shuffle_across_individuals}{a boolean indicating whether to randomize data across individuals in c-value computation.}
 }
 \value{
 \code{opa} returns an object of class "opafit".
@@ -98,11 +101,6 @@ dat <- data.frame(group = c("a", "b", "a", "b"),
                   t3 = c(8, 5, 10, 11))
 dat$group <- factor(dat$group, levels = c("a", "b"))
 h <- hypothesis(1:3)
-opamod <- opa(dat[,2:4], h)
-opamod <- opa(dat[,2:4], h)
-opamod <- opa(dat[,2:4], h, nreps = 500)
-opamod <- opa(dat[,2:4], h, pairing_type = "adjacent")
-opamod <- opa(dat[,2:4], h, diff_threshold = 1)
 opamod <- opa(dat[,2:4], h, group = dat$group)
 }
 \references{

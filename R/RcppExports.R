@@ -9,6 +9,10 @@ sign_with_threshold <- function(xs, diff_threshold) {
     .Call(`_opa_sign_with_threshold`, xs, diff_threshold)
 }
 
+triangular <- function(n) {
+    .Call(`_opa_triangular`, n)
+}
+
 all_diffs <- function(xs) {
     .Call(`_opa_all_diffs`, xs)
 }
@@ -29,7 +33,7 @@ pcc <- function(dat, h, pairing_type, diff_threshold) {
     .Call(`_opa_pcc`, dat, h, pairing_type, diff_threshold)
 }
 
-calc_cvalues <- function(pcc_out, nreps) {
-    .Call(`_opa_calc_cvalues`, pcc_out, nreps)
+calc_cvalues <- function(pcc_out, nreps, shuffle_across_individuals) {
+    .Call(`_opa_calc_cvalues`, pcc_out, nreps, shuffle_across_individuals)
 }
 
